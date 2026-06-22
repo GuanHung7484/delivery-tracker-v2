@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ff7fb0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="外送跑單小幫手">
+<title>外送跑單小幫手</title>
+<style>
+  :root{
+    --pink:#ff5fa2;
+    --pink-soft:#ffd9e8;
+    --pink-deep:#e11d74;
+    --green:#22c98a;
+    --green-soft:#cdf3e3;
+    --green-deep:#0f9d68;
+    --uber:#23c552;
+    --panda:#e9266d;
+    --lala:#ff7a18;
+    --ink:#33323a;
+    --ink2:#7a7682;
+    --ink3:#b7b2bf;
+    --card:#ffffff;
+    --line:#f0e6ee;
+    --soft:#faf8fb;
+    --shadow:0 8px 26px rgba(225,29,116,.10);
+    --up:#ff3b6b;      /* 比昨日高＝紅 */
+    --down:#16a34a;    /* 比昨日低＝綠 */
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bot:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;color:var(--ink);
+    font-family:-apple-system,"Segoe UI Variable","Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:18px;line-height:1.5;}
+  body{background:linear-gradient(160deg,#fff0f7 0%,#fbf4ff 40%,#eafaf3 100%);
+    background-attachment:fixed;padding:0 0 calc(40px + var(--safe-bot));min-height:100vh;}
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px;}
+
+  header{padding:calc(22px + var(--safe-top)) 16px 6px;text-align:center;}
+  header .title{font-size:30px;font-weight:900;letter-spacing:.5px;
+    background:linear-gradient(90deg,var(--pink),var(--green-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  header .sub{font-size:16px;color:var(--ink2);font-weight:700;margin-top:4px;}
+
+  .datebar{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px 0 4px;}
+  .datebar button{background:#fff;border:2px solid var(--pink-soft);color:var(--pink);
+    width:46px;height:46px;border-radius:16px;font-size:26px;line-height:1;font-weight:900;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);}
+  .datebar button:active{transform:scale(.94);}
+  .datebar .date{font-size:22px;font-weight:900;min-width:215px;text-align:center;}
+  .today-btn{display:block;margin:2px auto 0;background:none;border:none;color:var(--green-deep);
+    font-size:16px;font-weight:800;cursor:pointer;}
+
+  /* 頁籤 */
+  .tabs{display:flex;gap:6px;background:#fff;border-radius:18px;padding:6px;
+    margin:14px auto 4px;max-width:340px;box-shadow:var(--shadow);}
+  .tabs button{flex:1;border:none;background:none;color:var(--ink2);font-size:17px;
+    font-weight:800;padding:12px;border-radius:13px;cursor:pointer;}
+  .tabs button.active{background:linear-gradient(90deg,var(--pink),#ff8fc0);color:#fff;}
+
+  .card{background:var(--card);border-radius:26px;padding:20px;margin:16px 0;box-shadow:var(--shadow);}
+  .card-title{font-size:20px;font-weight:900;margin:0 0 14px;display:flex;align-items:center;gap:9px;}
+
+  /* 上線時間 */
+  .time-row{display:flex;gap:12px;}
+  .time-row .one{flex:1;}
+  .time-row .one label{display:block;font-size:16px;font-weight:800;color:var(--ink2);margin-bottom:7px;}
+  .time-row input[type=time]{width:100%;border:2px solid var(--pink-soft);border-radius:16px;
+    padding:14px 10px;font-size:21px;font-weight:800;color:var(--ink);background:#fff5fa;text-align:center;outline:none;}
+  .time-row input[type=time]:focus{border-color:var(--pink);}
+  .dur{margin-top:14px;text-align:center;background:linear-gradient(90deg,var(--pink-soft),var(--green-soft));
+    border-radius:18px;padding:13px;font-size:20px;font-weight:900;color:var(--pink-deep);}
+  .dur b{font-size:25px;}
+
+  /* 平台卡 */
+  .plat{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .plat .logo{width:62px;height:62px;flex:none;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,.12);}
+  .plat .pname{font-size:23px;font-weight:900;}
+  .plat .ptag{font-size:14px;font-weight:700;color:var(--ink2);}
+  .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .fld label{display:block;font-size:15px;font-weight:800;color:var(--ink2);margin-bottom:6px;text-align:center;}
+  .fld input{width:100%;border:2px solid var(--line);border-radius:14px;
+    padding:13px 8px;font-size:21px;font-weight:800;text-align:center;color:var(--ink);background:var(--soft);outline:none;}
+  .fld input:focus{background:#fff;}
+  .fld .unit{display:block;text-align:center;font-size:13px;font-weight:700;color:var(--ink2);margin-top:5px;}
+  .card.p-uber{border-top:6px solid var(--uber);}
+  .card.p-panda{border-top:6px solid var(--panda);}
+  .card.p-lala{border-top:6px solid var(--lala);}
+  .p-uber .fld input:focus{border-color:var(--uber);}
+  .p-panda .fld input:focus{border-color:var(--panda);}
+  .p-lala .fld input:focus{border-color:var(--lala);}
+
+  .res-line{margin-top:14px;text-align:center;background:var(--soft);border-radius:16px;
+    padding:12px;font-size:18px;font-weight:800;color:var(--ink);}
+  .res-line b{color:var(--pink-deep);font-size:22px;}
+  .res-line .est{color:var(--lala);font-size:14px;font-weight:800;}
+  .note{font-size:14px;color:var(--ink2);line-height:1.65;margin-top:11px;}
+  .note b{color:var(--pink-deep);}
+
+  /* hero 總覽 */
+  .hero{background:linear-gradient(135deg,var(--pink) 0%,#ff8fc0 55%,var(--green) 130%);
+    border-radius:30px;padding:24px 22px;margin:18px 0;color:#fff;text-align:center;
+    box-shadow:0 12px 30px rgba(225,29,116,.30);}
+  .hero .htxt{font-size:18px;font-weight:800;opacity:.95;}
+  .hero .hbig{font-size:52px;font-weight:900;line-height:1.05;margin:4px 0 2px;letter-spacing:.5px;}
+  .hero .hsub{font-size:16px;font-weight:700;opacity:.95;}
+  .hero .hnet{margin-top:14px;display:flex;justify-content:center;gap:22px;
+    border-top:1.5px solid rgba(255,255,255,.45);padding-top:12px;}
+  .hero .hnet .b{font-size:14px;font-weight:800;opacity:.92;}
+  .hero .hnet .v{font-size:24px;font-weight:900;margin-top:2px;}
+
+  .mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;}
+  .mbox{background:#fff;border-radius:20px;padding:16px 12px;text-align:center;box-shadow:var(--shadow);}
+  .mbox .mn{font-size:28px;font-weight:900;line-height:1.1;}
+  .mbox .ml{font-size:15.5px;font-weight:800;color:var(--ink2);margin-top:6px;}
+  .mbox .mh{font-size:12.5px;font-weight:700;color:var(--ink3);margin-top:3px;}
+  .mbox .delta{font-size:13px;font-weight:800;margin-top:4px;}
+  .mbox .delta.up{color:var(--up);}      /* 比昨日高 */
+  .mbox .delta.down{color:var(--down);}   /* 比昨日低 */
+  .mbox .delta.flat{color:var(--ink3);}
+  .mbox.green .mn{color:var(--green-deep);}
+  .mbox.pink  .mn{color:var(--pink-deep);}
+
+  /* 目標進度條 */
+  .goal{margin:0 0 4px;}
+  .goal-top{display:flex;justify-content:space-between;font-size:15px;font-weight:800;
+    color:var(--ink2);margin-bottom:8px;}
+  .goal-top .done{color:var(--pink-deep);}
+  .goal-bar{height:15px;background:var(--soft);border-radius:8px;overflow:hidden;}
+  .goal-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--green-deep));
+    border-radius:8px;transition:width .35s;min-width:4px;}
+  .goal-fill.full{background:linear-gradient(90deg,var(--pink),var(--pink-deep));}
+
+  /* 打氣貼圖 */
+  .og{display:flex;align-items:center;gap:15px;}
+  .og-stk{flex:none;width:64px;height:64px;}
+  .og-title{font-size:18px;font-weight:900;}
+  .og-title b{color:var(--pink-deep);}
+  .og-msg{font-size:15px;color:var(--ink2);margin-top:5px;font-weight:700;line-height:1.55;}
+  .og.done{background:linear-gradient(135deg,#fff0f6,#eafaf3);}
+
+  /* 設定欄位 */
+  .set-row{display:flex;gap:12px;margin-bottom:13px;}
+  .set-row .one{flex:1;}
+  .set-row label{display:block;font-size:14.5px;font-weight:800;color:var(--ink2);margin-bottom:6px;}
+  .set-row input{width:100%;border:2px solid var(--line);border-radius:14px;
+    padding:12px 10px;font-size:19px;font-weight:800;text-align:center;color:var(--ink);background:var(--soft);outline:none;}
+  .set-row input:focus{background:#fff;border-color:var(--green);}
+
+  /* 週/月報 */
+  .rep-total{font-size:42px;font-weight:900;color:var(--pink-deep);line-height:1.1;text-align:center;margin-top:4px;}
+  .rep-sub{font-size:16px;font-weight:800;color:var(--ink2);text-align:center;margin:6px 0 14px;}
+  .rgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:6px 0;}
+  .rbox{background:var(--soft);border-radius:16px;padding:14px 12px;text-align:center;}
+  .rbox .rn{font-size:22px;font-weight:900;}
+  .rbox .rl{font-size:14px;font-weight:800;color:var(--ink2);margin-top:4px;}
+  .best{background:linear-gradient(135deg,#fff0f6,#fde7f1);border-radius:16px;
+    padding:14px 16px;font-size:17px;font-weight:900;color:var(--pink-deep);margin:14px 0 2px;
+    display:flex;justify-content:space-between;align-items:center;}
+  .bars-cap{font-size:14px;color:var(--ink2);font-weight:800;margin:18px 0 9px;}
+  .bars{display:flex;align-items:flex-end;gap:3px;height:96px;}
+  .bar{flex:1;background:var(--soft);border-radius:4px 4px 0 0;min-height:4px;}
+  .bar.has{background:linear-gradient(180deg,var(--green),var(--green-deep));}
+  .bar.cur{background:linear-gradient(180deg,var(--pink),var(--pink-deep));}
+  .bar-labels{display:flex;gap:3px;margin-top:6px;}
+  .bar-labels span{flex:1;text-align:center;font-size:12px;color:var(--ink3);font-weight:800;}
+  .bar-labels span.cur{color:var(--pink-deep);}
+  .rep-empty{color:var(--ink3);font-size:16px;text-align:center;padding:22px 0;line-height:1.7;font-weight:700;}
+
+  /* 動作 */
+  .row-btn{display:flex;gap:12px;margin-top:6px;}
+  .row-btn button{flex:1;border:none;border-radius:16px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;}
+  .btn-out{background:var(--green-soft);color:var(--green-deep);}
+  .btn-in{background:var(--pink-soft);color:var(--pink-deep);}
+  .btn-clear{display:block;margin:16px auto 0;background:none;border:none;color:var(--ink3);
+    font-size:15px;font-weight:800;cursor:pointer;}
+  footer{text-align:center;color:var(--ink3);font-size:14px;font-weight:700;margin:24px 0 8px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">🛵 外送跑單小幫手</div>
+  <div class="sub">每天填一填，時薪馬上知道</div>
+</header>
+
+<div class="wrap">
+  <div class="datebar">
+    <button id="prevDay" aria-label="前一天">‹</button>
+    <div class="date" id="dateText">—</div>
+    <button id="nextDay" aria-label="後一天">›</button>
+  </div>
+  <button class="today-btn" id="todayBtn">📅 回到今天</button>
+
+  <div class="tabs">
+    <button id="tabDay" class="active">日報</button>
+    <button id="tabWeek">週報</button>
+    <button id="tabMonth">月報</button>
+  </div>
+
+  <!-- ============ 日報 ============ -->
+  <div id="dayView">
+
+    <!-- 上線時間 -->
+    <div class="card">
+      <div class="card-title">⏰ 今日上線時間</div>
+      <div class="time-row">
+        <div class="one"><label>開始</label><input type="time" id="t_start"></div>
+        <div class="one"><label>結束</label><input type="time" id="t_end"></div>
+      </div>
+      <div class="dur" id="durText">尚未填寫上線時間</div>
+    </div>
+
+    <!-- 平台輸入（JS 產生） -->
+    <div id="platCards"></div>
+
+    <!-- 今日里程 -->
+    <div class="card">
+      <div class="card-title">📍 今日里程</div>
+      <div class="pgrid">
+        <div class="fld"><label>出門里程表</label><input type="number" inputmode="decimal" min="0" step="1" id="odo_s" placeholder="例 25000"><span class="unit">公里</span></div>
+        <div class="fld"><label>收工里程表</label><input type="number" inputmode="decimal" min="0" step="1" id="odo_e" placeholder="例 25097"><span class="unit">公里</span></div>
+      </div>
+      <div class="res-line" id="kmRes">今日里程 <b>0</b> 公里</div>
+      <div class="note">上線出門先記一次里程表、收工再記一次，App 自動相減＝今日里程（最準）。<br>兩格<b>留空</b>的話，會用下面設定的「每單平均公里 × 單量」自動估算（數字會標 ≈）。</div>
+    </div>
+
+    <!-- 今日成本 -->
+    <div class="card">
+      <div class="card-title">💸 今日成本</div>
+      <div class="pgrid">
+        <div class="fld"><label>油錢</label><input type="number" inputmode="numeric" min="0" id="c_fuel" placeholder="留空可估算"><span class="unit">元</span></div>
+        <div class="fld"><label>其他</label><input type="number" inputmode="numeric" min="0" id="c_other" placeholder="保養/停車…"><span class="unit">元</span></div>
+      </div>
+      <div class="note">油錢留空時，會用「里程 × 每公里油耗」自動估算。其他＝保養、停車、罰單等。</div>
+    </div>
+
+    <!-- 今日總覽 -->
+    <div class="hero">
+      <div class="htxt">💰 今日總收入</div>
+      <div class="hbig" id="h_income">$0</div>
+      <div class="hsub" id="h_hourly">時薪 $0／小時</div>
+      <div class="hnet" id="h_net" style="display:none">
+        <div><div class="b">成本</div><div class="v" id="h_cost">$0</div></div>
+        <div><div class="b">淨收入</div><div class="v" id="h_netv">$0</div></div>
+      </div>
+    </div>
+
+    <!-- 收入目標 -->
+    <div class="card" id="goalCard" style="display:none"><div id="goalDayBar"></div></div>
+    <!-- 單量打氣 -->
+    <div class="card" id="cheerCard" style="display:none"><div class="og" id="cheerBox"></div></div>
+
+    <!-- 數據格 -->
+    <div class="mgrid" id="statGrid"></div>
+
+    <!-- 目標與設定 -->
+    <div class="card">
+      <div class="card-title">🎯 目標與設定<span style="font-size:13px;font-weight:700;color:var(--ink3);margin-left:6px">設定一次就好</span></div>
+      <div class="set-row">
+        <div class="one"><label>每單平均公里</label><input type="number" inputmode="decimal" min="0" step="0.1" id="s_avgkm" placeholder="例 2.5"></div>
+        <div class="one"><label>每公里油耗(元)</label><input type="number" inputmode="decimal" min="0" step="0.1" id="s_fuelkm" placeholder="例 1.2"></div>
+      </div>
+      <div class="set-row">
+        <div class="one"><label>每日收入目標</label><input type="number" inputmode="numeric" min="0" id="s_goalday" placeholder="例 2500"></div>
+        <div class="one"><label>每月收入目標</label><input type="number" inputmode="numeric" min="0" id="s_goalmonth" placeholder="例 60000"></div>
+      </div>
+      <div class="set-row">
+        <div class="one"><label>每日跑單目標(單)</label><input type="number" inputmode="numeric" min="0" id="s_goalorders" placeholder="例 35"></div>
+        <div class="one"></div>
+      </div>
+      <div class="note">每單平均公里、每公里油耗用來「自動估算」里程與油錢；目標用來顯示達成進度與打氣 💪</div>
+    </div>
+  </div>
+
+  <!-- ============ 週報 ============ -->
+  <div id="weekView" style="display:none"><div class="card" id="weekCard"></div></div>
+  <!-- ============ 月報 ============ -->
+  <div id="monthView" style="display:none"><div class="card" id="monthCard"></div></div>
+
+  <!-- 備份 -->
+  <div class="card">
+    <div class="card-title">💾 資料備份</div>
+    <div class="note" style="margin-top:0">資料只存在這支手機/電腦的瀏覽器，不會上傳。<b>換手機或清除瀏覽器前，請先匯出備份</b>，之後用「匯入」就能還原。</div>
+    <div class="row-btn" style="margin-top:13px">
+      <button class="btn-out" id="btnExport">⬇️ 匯出備份</button>
+      <button class="btn-in" id="btnImport">⬆️ 匯入備份</button>
+    </div>
+    <button class="btn-clear" id="btnClear">🗑️ 清除這天的資料</button>
+    <input type="file" id="importFile" accept=".csv,text/csv" style="display:none">
+  </div>
+
+  <footer>外送跑單小幫手 · 第二版 💕</footer>
+</div>
+
+<script>
+/* ===== 平台（含可愛大 LOGO）===== */
+const PLATFORMS = [
+  { key:'panda', name:'foodpanda', cls:'p-panda', tag:'熊貓外送',
+    logo:`<svg class="logo" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#e9266d"/><circle cx="15.5" cy="15.5" r="6" fill="#3a0a1c"/><circle cx="32.5" cy="15.5" r="6" fill="#3a0a1c"/><circle cx="15.5" cy="15.5" r="2.8" fill="#ff9ec0"/><circle cx="32.5" cy="15.5" r="2.8" fill="#ff9ec0"/><ellipse cx="24" cy="26" rx="12.5" ry="11.5" fill="#fff"/><ellipse cx="18.6" cy="24" rx="3.6" ry="4.4" fill="#3a0a1c"/><ellipse cx="29.4" cy="24" rx="3.6" ry="4.4" fill="#3a0a1c"/><circle cx="19.4" cy="22.6" r="1.4" fill="#fff"/><circle cx="30.2" cy="22.6" r="1.4" fill="#fff"/><circle cx="14.5" cy="29.5" r="2.2" fill="#ffc1d8"/><circle cx="33.5" cy="29.5" r="2.2" fill="#ffc1d8"/><ellipse cx="24" cy="29" rx="2" ry="1.5" fill="#3a0a1c"/><path d="M21.5 31.3 Q24 34 26.5 31.3" stroke="#3a0a1c" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="35" cy="34.5" r="3.4" fill="#ffd98a" stroke="#c9882a" stroke-width="0.9"/></svg>` },
+  { key:'uber', name:'Uber Eats', cls:'p-uber', tag:'優食',
+    logo:`<svg class="logo" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#23c552"/><ellipse cx="21" cy="37" rx="14" ry="3" fill="#0c5a2e" opacity="0.25"/><path d="M8 27 a13 8 0 0 0 26 0 z" fill="#fff"/><path d="M11 27 a10 8 0 0 1 20 0 z" fill="#ffb74d"/><path d="M13 24.5 q3 -4 8 -3 q4 -1 7 3 z" fill="#ffd08a"/><circle cx="17.5" cy="23.5" r="1.4" fill="#5a3b10"/><circle cx="24.5" cy="23.5" r="1.4" fill="#5a3b10"/><path d="M19.5 25.8 Q21 27.4 22.5 25.8" stroke="#5a3b10" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="15" cy="25.6" r="1.6" fill="#ff8a8a"/><circle cx="27" cy="25.6" r="1.6" fill="#ff8a8a"/><g fill="#fff"><rect x="37.4" y="16" width="2.7" height="22" rx="1.35"/><rect x="34.6" y="13" width="1.8" height="8" rx="0.9"/><rect x="37.8" y="13" width="1.8" height="8" rx="0.9"/><rect x="41" y="13" width="1.8" height="8" rx="0.9"/><path d="M34.6 20 h8.2 v1 a4.1 4.1 0 0 1 -8.2 0 z"/></g></svg>` },
+  { key:'lala', name:'Lalamove', cls:'p-lala', tag:'啦啦快送',
+    logo:`<svg class="logo" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#ff7a18"/><circle cx="14" cy="36" r="5.2" fill="#241200"/><circle cx="14" cy="36" r="2.1" fill="#ffcba1"/><circle cx="35" cy="36" r="5.2" fill="#241200"/><circle cx="35" cy="36" r="2.1" fill="#ffcba1"/><rect x="7.5" y="22" width="10" height="10" rx="2" fill="#fff"/><path d="M9.5 27 h6 M12.5 24 v6" stroke="#ff7a18" stroke-width="1.2"/><path d="M12 33 Q18 25 30 28 L35 33 Z" fill="#ffd9bd"/><path d="M30 28 L33 19" stroke="#ffd9bd" stroke-width="3" stroke-linecap="round"/><path d="M22 23 Q26 22 29 26 L31 31 Q26 33 21 30 Z" fill="#1f6dff"/><path d="M27 25 L32 20.5" stroke="#1f6dff" stroke-width="3" stroke-linecap="round"/><circle cx="22.5" cy="16" r="6.2" fill="#ffe0c4"/><path d="M16.3 16 a6.2 6.2 0 0 1 12.4 0 Z" fill="#e84d1a"/><rect x="16.3" y="15" width="12.4" height="2.4" fill="#c93d10"/><circle cx="24" cy="17.5" r="3.4" fill="#ffeede"/><circle cx="23.1" cy="17.4" r="0.85" fill="#3a1c00"/><circle cx="25.3" cy="17.4" r="0.85" fill="#3a1c00"/><path d="M23.1 19 Q24.2 20 25.3 19" stroke="#3a1c00" stroke-width="0.85" fill="none" stroke-linecap="round"/></svg>` },
+];
+
+/* ===== 打氣貼圖 ===== */
+const STK_HAPPY=`<svg class="og-stk" viewBox="0 0 64 64"><circle cx="32" cy="33" r="22" fill="#ffd86b"/><circle cx="24" cy="30" r="2.8" fill="#5a3b10"/><circle cx="40" cy="30" r="2.8" fill="#5a3b10"/><circle cx="19" cy="37" r="3.2" fill="#ff9e9e"/><circle cx="45" cy="37" r="3.2" fill="#ff9e9e"/><path d="M23 39 q9 9 18 0" stroke="#5a3b10" stroke-width="2.8" fill="none" stroke-linecap="round"/><path d="M52 14 l1.6 4.2 l4.2 1.6 l-4.2 1.6 l-1.6 4.2 l-1.6 -4.2 l-4.2 -1.6z" fill="#ffd86b"/></svg>`;
+const STK_SAD=`<svg class="og-stk" viewBox="0 0 64 64"><circle cx="32" cy="33" r="22" fill="#ffe0a3"/><path d="M19 25 q4.5 -3.5 9 -0.5" stroke="#7a5a1e" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M36 24.5 q4.5 -3 9 0.5" stroke="#7a5a1e" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="24" cy="33" r="2.6" fill="#5a3b10"/><circle cx="40" cy="33" r="2.6" fill="#5a3b10"/><path d="M24 47 q8 -7 16 0" stroke="#5a3b10" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M49 30 q3.5 5 0 9 q-3.5 -4 0 -9z" fill="#5ec8ff"/></svg>`;
+
+/* ===== 儲存 ===== */
+const STORE_KEY='delivery_v2_data', SET_KEY='delivery_v2_set';
+function loadAll(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'{}'); }catch(e){ return {}; } }
+function saveAll(d){ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+function getSet(){ try{ return JSON.parse(localStorage.getItem(SET_KEY)||'{}'); }catch(e){ return {}; } }
+function saveSet(s){ localStorage.setItem(SET_KEY, JSON.stringify(s)); }
+let DATA=loadAll(), current=new Date();
+
+/* ===== 日期 ===== */
+const WD=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function prettyDate(d){ return `${d.getMonth()+1}月${d.getDate()}日 ${WD[d.getDay()]}`; }
+function shiftDay(n){ const d=new Date(current); d.setDate(d.getDate()+n); current=d; loadDayIntoForm(); render(); }
+
+/* ===== 取資料 / 算指標 ===== */
+function blankDay(){ const p={}; PLATFORMS.forEach(pl=>p[pl.key]={orders:0,income:0});
+  return { start:'',end:'',odoS:0,odoE:0,fuel:0,other:0,platforms:p }; }
+function dayRecord(key){
+  const r=DATA[key]; if(!r) return blankDay();
+  const p={}; PLATFORMS.forEach(pl=>{ const pr=(r.platforms&&r.platforms[pl.key])||{};
+    p[pl.key]={orders:+pr.orders||0, income:+pr.income||0}; });
+  return { start:r.start||'', end:r.end||'', odoS:+r.odoS||0, odoE:+r.odoE||0,
+           fuel:+r.fuel||0, other:+r.other||0, platforms:p };
+}
+function durationHours(start,end){
+  if(!start||!end) return 0;
+  const [sh,sm]=start.split(':').map(Number), [eh,em]=end.split(':').map(Number);
+  let mins=(eh*60+em)-(sh*60+sm); if(mins<0) mins+=1440;
+  return mins/60;
+}
+function metrics(rec){
+  let income=0, orders=0;
+  PLATFORMS.forEach(pl=>{ income+=rec.platforms[pl.key].income; orders+=rec.platforms[pl.key].orders; });
+  const hours=durationHours(rec.start, rec.end);
+  const set=getSet();
+  // 里程：里程表優先（準），否則用 每單平均公里 × 單量 估算
+  let km=0, kmEst=false;
+  if(rec.odoS>0 && rec.odoE>0 && rec.odoE>=rec.odoS){ km=rec.odoE-rec.odoS; }
+  else { const avg=+set.avgKm||0; if(avg>0 && orders>0){ km=orders*avg; kmEst=true; } }
+  // 油錢：手填優先，否則 里程 × 每公里油耗 估算
+  let fuel=rec.fuel||0, fuelEst=false;
+  if(fuel<=0){ const fk=+set.fuelKm||0; if(fk>0 && km>0){ fuel=km*fk; fuelEst=true; } }
+  const cost=fuel+(rec.other||0), net=income-cost;
+  return { income, orders, hours, km, kmEst, fuel, fuelEst, cost, net,
+    hourly:hours>0?income/hours:0, ordPerHr:hours>0?orders/hours:0,
+    perOrder:orders>0?income/orders:0, perKm:km>0?income/km:0, netHourly:hours>0?net/hours:0 };
+}
+
+/* ===== 格式化 ===== */
+function money(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
+function money1(n){ return '$'+(Math.round(n*10)/10).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+function r1(n){ return Math.round(n*10)/10; }
+function hoursText(h){ if(h<=0) return '尚未填寫上線時間';
+  const hh=Math.floor(h), mm=Math.round((h-hh)*60); return `今日上線 <b>${hh}</b> 小時 <b>${mm}</b> 分`; }
+function goalBar(cur,goal,label){
+  if(!goal||goal<=0) return '';
+  const pct=cur/goal*100, w=Math.min(100,pct), done=cur>=goal;
+  return `<div class="goal"><div class="goal-top">
+      <span>${label}　${money(cur)} / ${money(goal)}</span>
+      <span class="${done?'done':''}">${pct.toFixed(0)}%${done?' 🎉達標':''}</span></div>
+    <div class="goal-bar"><div class="goal-fill ${done?'full':''}" style="width:${w}%"></div></div></div>`;
+}
+
+/* ===== 平台卡 ===== */
+function buildPlatCards(){
+  document.getElementById('platCards').innerHTML = PLATFORMS.map(pl=>`
+    <div class="card ${pl.cls}">
+      <div class="plat">${pl.logo}<div><div class="pname">${pl.name}</div><div class="ptag">${pl.tag}</div></div></div>
+      <div class="pgrid">
+        <div class="fld"><label>單量</label><input type="number" inputmode="numeric" min="0" id="ord_${pl.key}" placeholder="0"><span class="unit">單</span></div>
+        <div class="fld"><label>收入</label><input type="number" inputmode="numeric" min="0" id="inc_${pl.key}" placeholder="0"><span class="unit">元</span></div>
+      </div>
+    </div>`).join('');
+  PLATFORMS.forEach(pl=>['ord_','inc_'].forEach(p=>
+    document.getElementById(p+pl.key).addEventListener('input', saveForm)));
+}
+
+/* ===== 表單 <-> 資料 ===== */
+function loadDayIntoForm(){
+  const rec=dayRecord(ymd(current));
+  document.getElementById('t_start').value=rec.start;
+  document.getElementById('t_end').value=rec.end;
+  document.getElementById('odo_s').value=rec.odoS||'';
+  document.getElementById('odo_e').value=rec.odoE||'';
+  document.getElementById('c_fuel').value=rec.fuel||'';
+  document.getElementById('c_other').value=rec.other||'';
+  PLATFORMS.forEach(pl=>{
+    document.getElementById('ord_'+pl.key).value=rec.platforms[pl.key].orders||'';
+    document.getElementById('inc_'+pl.key).value=rec.platforms[pl.key].income||'';
+  });
+  const s=getSet();
+  document.getElementById('s_avgkm').value=s.avgKm||'';
+  document.getElementById('s_fuelkm').value=s.fuelKm||'';
+  document.getElementById('s_goalday').value=s.goalDay||'';
+  document.getElementById('s_goalmonth').value=s.goalMonth||'';
+  document.getElementById('s_goalorders').value=s.goalOrders||'';
+}
+function saveForm(){
+  const rec={ start:document.getElementById('t_start').value||'', end:document.getElementById('t_end').value||'',
+    odoS:+document.getElementById('odo_s').value||0, odoE:+document.getElementById('odo_e').value||0,
+    fuel:+document.getElementById('c_fuel').value||0, other:+document.getElementById('c_other').value||0, platforms:{} };
+  PLATFORMS.forEach(pl=>{ rec.platforms[pl.key]={ orders:+document.getElementById('ord_'+pl.key).value||0,
+    income:+document.getElementById('inc_'+pl.key).value||0 }; });
+  DATA[ymd(current)]=rec; saveAll(DATA); render();
+}
+function saveSettings(){
+  const s=getSet();
+  s.avgKm=+document.getElementById('s_avgkm').value||0;
+  s.fuelKm=+document.getElementById('s_fuelkm').value||0;
+  s.goalDay=+document.getElementById('s_goalday').value||0;
+  s.goalMonth=+document.getElementById('s_goalmonth').value||0;
+  s.goalOrders=+document.getElementById('s_goalorders').value||0;
+  saveSet(s); render();
+}
+
+/* ===== 渲染日報 ===== */
+function render(){
+  document.getElementById('dateText').textContent=prettyDate(current);
+  const rec=dayRecord(ymd(current)), m=metrics(rec);
+  const prev=new Date(current); prev.setDate(prev.getDate()-1);
+  const mp=metrics(dayRecord(ymd(prev)));
+  const hasPrev=(mp.income||mp.orders||mp.hours||mp.km)>0;
+
+  document.getElementById('durText').innerHTML=hoursText(m.hours);
+  const ke=m.kmEst?'≈':'';
+  document.getElementById('kmRes').innerHTML=`今日里程 <b>${ke}${r1(m.km)}</b> 公里 ${m.kmEst?'<span class="est">（估算）</span>':''}`;
+
+  document.getElementById('h_income').textContent=money(m.income);
+  document.getElementById('h_hourly').textContent='時薪 '+money(m.hourly)+'／小時';
+  const netEl=document.getElementById('h_net');
+  if(m.cost>0){ netEl.style.display='flex';
+    document.getElementById('h_cost').textContent=(m.fuelEst?'≈':'')+'－'+money(m.cost);
+    document.getElementById('h_netv').textContent=(m.fuelEst?'≈':'')+money(m.net);
+  } else netEl.style.display='none';
+
+  // 收入目標
+  const set=getSet(), gd=+set.goalDay||0;
+  const gc=document.getElementById('goalCard');
+  if(gd>0){ gc.style.display='block'; document.getElementById('goalDayBar').innerHTML=goalBar(m.income,gd,'今日收入目標'); }
+  else gc.style.display='none';
+
+  // 單量打氣
+  renderCheer(m.orders);
+
+  // 比較
+  function dAbs(c,p){ return hasPrev?c-p:null; }
+  function dPct(c,p){ return (hasPrev&&p>0)?(c-p)/p*100:null; }
+  function fd(v,kind){
+    if(v===null) return `<div class="delta flat">—</div>`;
+    const up=v>0.01, down=v<-0.01, a=Math.abs(v);
+    const arrow=up?'▲':(down?'▼':'＝'), cls=up?'up':(down?'down':'flat');
+    let t = kind==='pct'?a.toFixed(0)+'%' : kind==='money'?'$'+Math.round(a)
+          : kind==='order'?Math.round(a)+'單' : kind==='km'?r1(a)+'km'
+          : kind==='hr'?r1(a)+'hr' : r1(a);
+    return `<div class="delta ${cls}">${arrow} ${t} vs 昨日</div>`;
+  }
+  const stats=[
+    {c:'green', mn:m.orders+' 單', ml:'總單量', mh:'三平台合計', d:fd(dAbs(m.orders,mp.orders),'order')},
+    {c:'pink',  mn:r1(m.ordPerHr)+' 單', ml:'平均單量', mh:'每小時幾單', d:fd(dAbs(m.ordPerHr,mp.ordPerHr),'dec')},
+    {c:'green', mn:money1(m.perOrder), ml:'一單平均', mh:'每單賺多少', d:fd(dAbs(m.perOrder,mp.perOrder),'money')},
+    {c:'pink',  mn:ke+r1(m.km)+' km', ml:'總里程', mh:'公里數合計', d:fd(dAbs(m.km,mp.km),'km')},
+    {c:'green', mn:ke+money1(m.perKm), ml:'每公里收入', mh:'收入 ÷ 里程', d:fd(dAbs(m.perKm,mp.perKm),'money')},
+    {c:'pink',  mn:r1(m.hours)+' 時', ml:'上線時數', mh:'今日工時', d:fd(dAbs(m.hours,mp.hours),'hr')},
+  ];
+  if(m.cost>0){
+    stats.push({c:'green', mn:money(m.net), ml:'淨收入', mh:'收入 － 成本', d:fd(dAbs(m.net,mp.net),'money')});
+    stats.push({c:'pink',  mn:money(m.netHourly), ml:'淨時薪', mh:'淨收入 ÷ 工時', d:fd(dAbs(m.netHourly,mp.netHourly),'money')});
+  }
+  document.getElementById('statGrid').innerHTML=stats.map(s=>
+    `<div class="mbox ${s.c}"><div class="mn">${s.mn}</div>${s.d}<div class="ml">${s.ml}</div><div class="mh">${s.mh}</div></div>`).join('');
+
+  renderWeek(); renderMonth();
+}
+
+function renderCheer(orders){
+  const goal=+getSet().goalOrders||0, card=document.getElementById('cheerCard');
+  if(goal<=0){ card.style.display='none'; return; }
+  card.style.display='block';
+  const done=orders>=goal, remain=Math.max(0,goal-orders);
+  const happy=['太棒了，今日跑單達標！🎉','目標達成，你超讚的 👏','漂亮！維持這個節奏 🔥','達標啦，今天辛苦了 😎'];
+  const cheer=['還差 '+remain+' 單就達標，再衝一下！💪','差一點點，別放棄，加油！🙌','再 '+remain+' 單而已，你一定可以！🛵','慢慢來盡力就好，明天再拚 🌱'];
+  const pool=done?happy:cheer;
+  const msg=(orders<=0&&!done)?'今天還沒開始，設定好就出發吧！🛵':pool[current.getDate()%pool.length];
+  document.getElementById('cheerBox').parentElement.className='card og'+(done?' done':'');
+  document.getElementById('cheerBox').innerHTML=`${done?STK_HAPPY:STK_SAD}
+    <div><div class="og-title">今日跑單目標　<b>${orders}</b> / ${goal} 單</div><div class="og-msg">${msg}</div></div>`;
+}
+
+/* ===== 區間統計（週/月共用）===== */
+function rangeMetrics(dates){
+  let income=0,orders=0,hours=0,km=0,cost=0,net=0,days=0,anyEst=false;
+  let best={key:null,income:0}; const daily=[];
+  dates.forEach(dt=>{
+    const mm=metrics(dayRecord(ymd(dt)));
+    daily.push({dt, income:mm.income});
+    if(mm.income>0||mm.orders>0||mm.hours>0){
+      income+=mm.income; orders+=mm.orders; hours+=mm.hours; km+=mm.km; cost+=mm.cost; net+=mm.net; days++;
+      if(mm.kmEst) anyEst=true;
+      if(mm.income>best.income) best={key:dt, income:mm.income};
+    }
+  });
+  return { daily, income, orders, hours, km, cost, net, days, anyEst, best,
+    avgDaily:days>0?income/days:0, hourly:hours>0?income/hours:0,
+    perKm:km>0?income/km:0, avgOrder:orders>0?income/orders:0 };
+}
+function rbox(n,l){ return `<div class="rbox"><div class="rn">${n}</div><div class="rl">${l}</div></div>`; }
+function repGrid(R){
+  const e=R.anyEst?'≈':'';
+  let g=`<div class="rgrid">
+    ${rbox(r1(R.hours)+' hr','總工時')}${rbox(money(R.hourly),'平均時薪')}
+    ${rbox(R.orders+' 單','總單量')}${rbox(e+r1(R.km)+' km','總里程')}
+    ${rbox(e+money1(R.perKm),'平均每公里')}${rbox(money1(R.avgOrder),'平均單價')}`;
+  if(R.cost>0) g+=rbox(money(R.cost),'總成本')+rbox(money(R.net),'淨收入');
+  return g+`</div>`;
+}
+
+/* ===== 週報 ===== */
+function renderWeek(){
+  const dow=(current.getDay()+6)%7;
+  const mon=new Date(current.getFullYear(),current.getMonth(),current.getDate()-dow);
+  const dates=[]; for(let i=0;i<7;i++) dates.push(new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i));
+  const R=rangeMetrics(dates), sun=dates[6];
+  const range=`${mon.getMonth()+1}/${mon.getDate()}～${sun.getMonth()+1}/${sun.getDate()}`;
+  let html=`<div class="card-title">🗓️ 本週統計</div><div style="text-align:center;color:var(--ink2);font-weight:800;margin:-6px 0 6px">${range}</div>`;
+  if(R.days===0){ document.getElementById('weekCard').innerHTML=html+`<div class="rep-empty">這一週還沒有記錄<br>記了之後就會自動統計整週 📊</div>`; return; }
+  html+=`<div class="rep-total">${money(R.income)}</div><div class="rep-sub">出勤 ${R.days} 天 · 平均日收入 ${money(R.avgDaily)}</div>`;
+  html+=goalBar(R.income,(+getSet().goalDay||0)*7,'本週目標');
+  html+=repGrid(R);
+  html+=`<div class="best"><span>🏆 最佳一天　${R.best.key.getMonth()+1}/${R.best.key.getDate()}</span><span>${money(R.best.income)}</span></div>`;
+  const wd=['一','二','三','四','五','六','日'], mx=Math.max(1,...R.daily.map(x=>x.income));
+  let bars='',labels='';
+  R.daily.forEach((x,i)=>{ const h=x.income>0?Math.max(4,Math.round(x.income/mx*96)):4;
+    const cur=ymd(x.dt)===ymd(current);
+    bars+=`<div class="${cur?'bar cur':(x.income>0?'bar has':'bar')}" style="height:${h}px" title="${money(x.income)}"></div>`;
+    labels+=`<span class="${cur?'cur':''}">${wd[i]}</span>`; });
+  html+=`<div class="bars-cap">每日收入（粉紅＝目前檢視的日期）</div><div class="bars">${bars}</div><div class="bar-labels">${labels}</div>`;
+  document.getElementById('weekCard').innerHTML=html;
+}
+
+/* ===== 月報 ===== */
+function renderMonth(){
+  const y=current.getFullYear(), mo=current.getMonth();
+  const dim=new Date(y,mo+1,0).getDate(), dates=[];
+  for(let d=1;d<=dim;d++) dates.push(new Date(y,mo,d));
+  const R=rangeMetrics(dates);
+  let html=`<div class="card-title">📅 本月統計 · ${y}年${mo+1}月</div>`;
+  if(R.days===0){ document.getElementById('monthCard').innerHTML=html+`<div class="rep-empty">這個月還沒有記錄<br>記了之後就會自動幫你統計整月 📊</div>`; return; }
+  html+=`<div class="rep-total">${money(R.income)}</div><div class="rep-sub">出勤 ${R.days} 天 · 平均日收入 ${money(R.avgDaily)}</div>`;
+  html+=goalBar(R.income,+getSet().goalMonth||0,'本月目標');
+  html+=repGrid(R);
+  html+=`<div class="best"><span>🏆 最佳一天　${R.best.key.getMonth()+1}/${R.best.key.getDate()}</span><span>${money(R.best.income)}</span></div>`;
+  const mx=Math.max(1,...R.daily.map(x=>x.income));
+  let bars='';
+  R.daily.forEach(x=>{ const h=x.income>0?Math.max(3,Math.round(x.income/mx*96)):3;
+    const cur=ymd(x.dt)===ymd(current);
+    bars+=`<div class="${cur?'bar cur':(x.income>0?'bar has':'bar')}" style="height:${h}px" title="${x.dt.getDate()}日 ${money(x.income)}"></div>`; });
+  html+=`<div class="bars-cap">每日收入（${mo+1}月・粉紅＝目前檢視的日期）</div><div class="bars">${bars}</div>`;
+  document.getElementById('monthCard').innerHTML=html;
+}
+
+/* ===== 切換頁籤 ===== */
+function setView(v){
+  document.getElementById('dayView').style.display  = v==='day'?'':'none';
+  document.getElementById('weekView').style.display = v==='week'?'':'none';
+  document.getElementById('monthView').style.display= v==='month'?'':'none';
+  document.getElementById('tabDay').classList.toggle('active',v==='day');
+  document.getElementById('tabWeek').classList.toggle('active',v==='week');
+  document.getElementById('tabMonth').classList.toggle('active',v==='month');
+  window.scrollTo(0,0);
+}
+
+/* ===== 清除 ===== */
+function clearDay(){
+  if(!confirm('確定要清除「'+prettyDate(current)+'」的所有資料嗎？')) return;
+  delete DATA[ymd(current)]; saveAll(DATA); loadDayIntoForm(); render();
+}
+
+/* ===== 匯出 / 匯入 CSV ===== */
+const CSV_COLS=['日期','開始','結束','出門里程表','收工里程表','油錢','其他成本'];
+PLATFORMS.forEach(pl=>CSV_COLS.push(pl.name+'單量', pl.name+'收入'));
+function exportCSV(){
+  const keys=Object.keys(DATA).sort();
+  if(keys.length===0){ alert('還沒有任何資料可以匯出，先記幾天再來吧 🙂'); return; }
+  const rows=[CSV_COLS.join(',')];
+  keys.forEach(k=>{ const r=dayRecord(k);
+    const row=[k,r.start,r.end,r.odoS,r.odoE,r.fuel,r.other];
+    PLATFORMS.forEach(pl=>row.push(r.platforms[pl.key].orders, r.platforms[pl.key].income));
+    rows.push(row.join(',')); });
+  const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='外送跑單備份_'+ymd(new Date())+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importCSV(file){
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const text=String(ev.target.result).replace(/^﻿/,'');
+      const lines=text.split(/\r?\n/).filter(l=>l.trim().length);
+      if(lines.length<2) throw 0;
+      const idx={}; lines[0].split(',').forEach((h,i)=>idx[h.trim()]=i);
+      if(!('日期' in idx)) throw 0;
+      const g=(c,n)=> n in idx ? (c[idx[n]]||'') : '';
+      const gn=(c,n)=> n in idx ? (+c[idx[n]]||0) : 0;
+      let added=0;
+      for(let i=1;i<lines.length;i++){
+        const c=lines[i].split(',');
+        const date=g(c,'日期').trim();
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        const rec={ start:g(c,'開始').trim(), end:g(c,'結束').trim(),
+          odoS:gn(c,'出門里程表'), odoE:gn(c,'收工里程表'), fuel:gn(c,'油錢'), other:gn(c,'其他成本'), platforms:{} };
+        PLATFORMS.forEach(pl=>rec.platforms[pl.key]={ orders:gn(c,pl.name+'單量'), income:gn(c,pl.name+'收入') });
+        DATA[date]=rec; added++;
+      }
+      saveAll(DATA); loadDayIntoForm(); render();
+      alert('匯入完成！共匯入 '+added+' 天的資料。');
+    }catch(err){ alert('匯入失敗：檔案格式不正確，請使用本工具「匯出備份」產生的 CSV 檔。'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ===== 事件 ===== */
+document.getElementById('prevDay').onclick=()=>shiftDay(-1);
+document.getElementById('nextDay').onclick=()=>shiftDay(1);
+document.getElementById('todayBtn').onclick=()=>{ current=new Date(); loadDayIntoForm(); render(); };
+['t_start','t_end','odo_s','odo_e','c_fuel','c_other'].forEach(id=>
+  document.getElementById(id).addEventListener('input', saveForm));
+['s_avgkm','s_fuelkm','s_goalday','s_goalmonth','s_goalorders'].forEach(id=>
+  document.getElementById(id).addEventListener('input', saveSettings));
+document.getElementById('tabDay').onclick=()=>setView('day');
+document.getElementById('tabWeek').onclick=()=>setView('week');
+document.getElementById('tabMonth').onclick=()=>setView('month');
+document.getElementById('btnClear').onclick=clearDay;
+document.getElementById('btnExport').onclick=exportCSV;
+document.getElementById('btnImport').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=function(e){
+  const f=e.target.files[0]; if(!f) return;
+  if(confirm('匯入會覆蓋「相同日期」的資料，其他日期保留。確定匯入嗎？')) importCSV(f);
+  e.target.value='';
+};
+
+buildPlatCards();
+loadDayIntoForm();
+setView('day');
+render();
+</script>
+</body>
+</html>
