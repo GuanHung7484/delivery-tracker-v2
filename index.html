@@ -720,7 +720,7 @@ function cloudLogin(){
   }catch(e){ alert('登入失敗，請確認網路。'); }
 }
 function cloudLogout(){ try{ firebase.auth().signOut(); }catch(e){} }
-function userDoc(){ return db.collection('users').doc(cloudUser.uid); }
+function userDoc(){ return db.collection('delivery').doc(cloudUser.uid); }
 
 /* 合併：以「日期」為單位，取最後修改（_ts）較新的那筆，兩邊都保留 */
 function mergeData(local, cloud){
