@@ -719,7 +719,17 @@ function cloudLogin(){
     auth.signInWithPopup(p).catch(()=>{ auth.signInWithRedirect(p); });
   }catch(e){ alert('登入失敗，請確認網路。'); }
 }
-function cloudLogout(){ try{ firebase.auth().signOut(); }catch(e){} }
+function cloudLogout(){
+  try{
+    firebase.auth().signOut().then(()=>{
+      // 登出時清掉這台裝置的本機快取與帳號綁定，
+      // 避免下一個人在同一台裝置看到你的資料（你的資料安全存在雲端，重新登入就回來）
+      DATA={}; saveAll(DATA);
+      localStorage.removeItem('delivery_v2_owner');
+      loadDayIntoForm(); render();
+    }).catch(()=>{});
+  }catch(e){}
+}
 function userDoc(){ return db.collection('delivery').doc(cloudUser.uid); }
 
 /* 合併：以「日期」為單位，取最後修改（_ts）較新的那筆，兩邊都保留 */
@@ -735,13 +745,20 @@ function mergeData(local, cloud){
 function startSync(){
   if(!cloudUser||!db) return;
   setSyncDot('saving');
+  const owner=localStorage.getItem('delivery_v2_owner');
   userDoc().get().then(snap=>{
     const cloud = snap.exists ? (snap.data()||{}) : {};
-    // 1) 首次合併：本機 + 雲端，誰都不會被吃掉
-    DATA = mergeData(DATA, cloud.data||{});
+    if(owner && owner!==cloudUser.uid){
+      // 這台裝置上一份快取屬於「別的帳號」→ 不合併，直接改用這個帳號的雲端資料
+      DATA = cloud.data||{}; saveSet(cloud.settings||{});
+    }else{
+      // 同一帳號（補上離線編輯），或本機從未綁定帳號（首次登入把本機資料帶上雲）
+      DATA = mergeData(DATA, cloud.data||{});
+      const ls=getSet(), cs=cloud.settings||{};
+      saveSet(((ls._ts||0) >= (cs._ts||0)) ? Object.assign({},cs,ls) : Object.assign({},ls,cs));
+    }
+    localStorage.setItem('delivery_v2_owner', cloudUser.uid);
     saveAll(DATA);
-    const ls=getSet(), cs=cloud.settings||{};
-    saveSet(((ls._ts||0) >= (cs._ts||0)) ? Object.assign({},cs,ls) : Object.assign({},ls,cs));
     loadDayIntoForm(); render();
     pushCloud(true);              // 把合併後結果寫回雲端
     // 2) 即時監聽：其他裝置一改，這邊馬上更新
