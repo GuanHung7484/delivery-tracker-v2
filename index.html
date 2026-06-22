@@ -177,6 +177,21 @@
   .btn-clear{display:block;margin:16px auto 0;background:none;border:none;color:var(--ink3);
     font-size:15px;font-weight:800;cursor:pointer;}
   footer{text-align:center;color:var(--ink3);font-size:14px;font-weight:700;margin:24px 0 8px;}
+
+  /* 雲端同步列 */
+  .sync{max-width:520px;margin:12px auto 0;padding:0 16px;}
+  .sync .box{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:13px 16px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    border:2px solid var(--green-soft);}
+  .sync .lbl{font-size:15px;font-weight:800;color:var(--ink2);display:flex;align-items:center;gap:9px;line-height:1.35;}
+  .sync .dot{width:11px;height:11px;border-radius:50%;background:#cfc9d6;flex:none;}
+  .sync .dot.ok{background:var(--green);}
+  .sync .dot.saving{background:#ffb020;}
+  .sync .dot.err{background:#ff3b6b;}
+  .sync .gbtn{border:none;border-radius:13px;padding:12px 18px;font-size:15px;font-weight:900;
+    cursor:pointer;background:linear-gradient(90deg,var(--pink),#ff8fc0);color:#fff;white-space:nowrap;flex:none;}
+  .sync .gbtn.out{background:var(--soft);color:var(--ink2);}
+  .sync .gbtn:active{transform:scale(.96);}
 </style>
 </head>
 <body>
@@ -185,6 +200,14 @@
   <div class="title">🛵 外送跑單小幫手</div>
   <div class="sub">每天填一填，時薪馬上知道</div>
 </header>
+
+<!-- 雲端同步列（設定好 Firebase 後才會出現） -->
+<div class="sync" id="syncBar" style="display:none">
+  <div class="box">
+    <div class="lbl"><span class="dot" id="syncDot"></span><span id="syncText">雲端同步</span></div>
+    <button class="gbtn" id="syncBtn">☁️ 登入</button>
+  </div>
+</div>
 
 <div class="wrap">
   <div class="datebar">
@@ -294,6 +317,11 @@
 
   <footer>外送跑單小幫手 · 第二版 💕</footer>
 </div>
+
+<!-- Firebase（雲端同步用，official CDN） -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
 /* ===== 平台（含可愛大 LOGO）===== */
@@ -413,7 +441,8 @@ function saveForm(){
     fuel:+document.getElementById('c_fuel').value||0, other:+document.getElementById('c_other').value||0, platforms:{} };
   PLATFORMS.forEach(pl=>{ rec.platforms[pl.key]={ orders:+document.getElementById('ord_'+pl.key).value||0,
     income:+document.getElementById('inc_'+pl.key).value||0 }; });
-  DATA[ymd(current)]=rec; saveAll(DATA); render();
+  rec._ts=Date.now();
+  DATA[ymd(current)]=rec; saveAll(DATA); render(); pushCloud();
 }
 function saveSettings(){
   const s=getSet();
@@ -422,7 +451,8 @@ function saveSettings(){
   s.goalDay=+document.getElementById('s_goalday').value||0;
   s.goalMonth=+document.getElementById('s_goalmonth').value||0;
   s.goalOrders=+document.getElementById('s_goalorders').value||0;
-  saveSet(s); render();
+  s._ts=Date.now();
+  saveSet(s); render(); pushCloud();
 }
 
 /* ===== 渲染日報 ===== */
@@ -584,7 +614,7 @@ function setView(v){
 /* ===== 清除 ===== */
 function clearDay(){
   if(!confirm('確定要清除「'+prettyDate(current)+'」的所有資料嗎？')) return;
-  delete DATA[ymd(current)]; saveAll(DATA); loadDayIntoForm(); render();
+  delete DATA[ymd(current)]; saveAll(DATA); loadDayIntoForm(); render(); pushCloud();
 }
 
 /* ===== 匯出 / 匯入 CSV ===== */
@@ -621,11 +651,11 @@ function importCSV(file){
         const date=g(c,'日期').trim();
         if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
         const rec={ start:g(c,'開始').trim(), end:g(c,'結束').trim(),
-          odoS:gn(c,'出門里程表'), odoE:gn(c,'收工里程表'), fuel:gn(c,'油錢'), other:gn(c,'其他成本'), platforms:{} };
+          odoS:gn(c,'出門里程表'), odoE:gn(c,'收工里程表'), fuel:gn(c,'油錢'), other:gn(c,'其他成本'), platforms:{}, _ts:Date.now() };
         PLATFORMS.forEach(pl=>rec.platforms[pl.key]={ orders:gn(c,pl.name+'單量'), income:gn(c,pl.name+'收入') });
         DATA[date]=rec; added++;
       }
-      saveAll(DATA); loadDayIntoForm(); render();
+      saveAll(DATA); loadDayIntoForm(); render(); pushCloud();
       alert('匯入完成！共匯入 '+added+' 天的資料。');
     }catch(err){ alert('匯入失敗：檔案格式不正確，請使用本工具「匯出備份」產生的 CSV 檔。'); }
   };
@@ -652,10 +682,107 @@ document.getElementById('importFile').onchange=function(e){
   e.target.value='';
 };
 
+/* ===================================================================
+   ☁️ 雲端同步（Firebase）
+   設定方式：到 Firebase 建免費專案後，把下面 firebaseConfig 的
+   PASTE_xxx 換成你的設定值即可（見「雲端同步設定教學.md」）。
+   還沒設定前，網站照常運作（純本機），只是不會出現登入按鈕。
+=================================================================== */
+const firebaseConfig = {
+  apiKey: "PASTE_apiKey",
+  authDomain: "PASTE_authDomain",
+  projectId: "PASTE_projectId",
+  appId: "PASTE_appId"
+};
+const CLOUD_ENABLED = !/PASTE_/.test(JSON.stringify(firebaseConfig));
+let cloudUser=null, db=null, unsub=null, pushTimer=null, applyingRemote=false;
+
+function setSyncDot(s){ const d=document.getElementById('syncDot'); if(d) d.className='dot '+(s||''); }
+function updateSyncUI(){
+  const bar=document.getElementById('syncBar');
+  if(!CLOUD_ENABLED){ bar.style.display='none'; return; }
+  bar.style.display='block';
+  const txt=document.getElementById('syncText'), btn=document.getElementById('syncBtn');
+  if(cloudUser){
+    txt.textContent='已開啟雲端同步 · '+(cloudUser.email||cloudUser.displayName||'已登入');
+    btn.textContent='登出'; btn.className='gbtn out'; btn.onclick=cloudLogout; setSyncDot('ok');
+  }else{
+    txt.textContent='登入 Google，多裝置自動同步紀錄';
+    btn.textContent='☁️ 登入 Google'; btn.className='gbtn'; btn.onclick=cloudLogin; setSyncDot('');
+  }
+}
+function cloudLogin(){
+  try{
+    const auth=firebase.auth(), p=new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(p).catch(()=>{ auth.signInWithRedirect(p); });
+  }catch(e){ alert('登入失敗，請確認網路。'); }
+}
+function cloudLogout(){ try{ firebase.auth().signOut(); }catch(e){} }
+function userDoc(){ return db.collection('users').doc(cloudUser.uid); }
+
+/* 合併：以「日期」為單位，取最後修改（_ts）較新的那筆，兩邊都保留 */
+function mergeData(local, cloud){
+  const out=Object.assign({}, cloud||{});
+  for(const k in (local||{})){
+    if(!Object.prototype.hasOwnProperty.call(local,k)) continue;
+    if(!(k in out)) out[k]=local[k];
+    else{ const lt=(local[k]&&local[k]._ts)||0, ct=(out[k]&&out[k]._ts)||0; if(lt>=ct) out[k]=local[k]; }
+  }
+  return out;
+}
+function startSync(){
+  if(!cloudUser||!db) return;
+  setSyncDot('saving');
+  userDoc().get().then(snap=>{
+    const cloud = snap.exists ? (snap.data()||{}) : {};
+    // 1) 首次合併：本機 + 雲端，誰都不會被吃掉
+    DATA = mergeData(DATA, cloud.data||{});
+    saveAll(DATA);
+    const ls=getSet(), cs=cloud.settings||{};
+    saveSet(((ls._ts||0) >= (cs._ts||0)) ? Object.assign({},cs,ls) : Object.assign({},ls,cs));
+    loadDayIntoForm(); render();
+    pushCloud(true);              // 把合併後結果寫回雲端
+    // 2) 即時監聽：其他裝置一改，這邊馬上更新
+    if(unsub) unsub();
+    unsub = userDoc().onSnapshot(s=>{
+      if(!s.exists) return;
+      const d=s.data()||{};
+      applyingRemote=true;
+      DATA = d.data||{}; saveAll(DATA);
+      if(d.settings) saveSet(d.settings);
+      const a=document.activeElement, typing=a&&a.tagName==='INPUT';
+      if(!typing) loadDayIntoForm();   // 正在打字就不覆蓋輸入框
+      render(); setSyncDot('ok'); applyingRemote=false;
+    }, ()=>setSyncDot('err'));
+  }).catch(()=>setSyncDot('err'));
+}
+function stopSync(){ if(unsub){ unsub(); unsub=null; } }
+function pushCloud(now){
+  if(!cloudUser||!db||applyingRemote) return;
+  setSyncDot('saving');
+  clearTimeout(pushTimer);
+  const doWrite=()=>userDoc().set({
+      data:DATA, settings:getSet(), updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true}).then(()=>setSyncDot('ok')).catch(()=>setSyncDot('err'));
+  if(now) doWrite(); else pushTimer=setTimeout(doWrite, 800);
+}
+function initCloud(){
+  if(!CLOUD_ENABLED || typeof firebase==='undefined'){ updateSyncUI(); return; }
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore();
+    try{ db.enablePersistence({synchronizeTabs:true}).catch(()=>{}); }catch(e){}
+    firebase.auth().getRedirectResult().catch(()=>{});
+    firebase.auth().onAuthStateChanged(u=>{ cloudUser=u; updateSyncUI(); if(u) startSync(); else stopSync(); });
+  }catch(e){ console.log('cloud init fail', e); }
+  updateSyncUI();
+}
+
 buildPlatCards();
 loadDayIntoForm();
 setView('day');
 render();
+initCloud();
 </script>
 </body>
 </html>
