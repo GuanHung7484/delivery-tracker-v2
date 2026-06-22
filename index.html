@@ -689,10 +689,12 @@ document.getElementById('importFile').onchange=function(e){
    還沒設定前，網站照常運作（純本機），只是不會出現登入按鈕。
 =================================================================== */
 const firebaseConfig = {
-  apiKey: "PASTE_apiKey",
-  authDomain: "PASTE_authDomain",
-  projectId: "PASTE_projectId",
-  appId: "PASTE_appId"
+  apiKey: "AIzaSyASOTXURGk2kXxtGdcB4G3bctNpqf5n1iU",
+  authDomain: "bookkeeping-e486d.firebaseapp.com",
+  projectId: "bookkeeping-e486d",
+  storageBucket: "bookkeeping-e486d.firebasestorage.app",
+  messagingSenderId: "1018695108002",
+  appId: "1:1018695108002:web:9340804805a1253133defb"
 };
 const CLOUD_ENABLED = !/PASTE_/.test(JSON.stringify(firebaseConfig));
 let cloudUser=null, db=null, unsub=null, pushTimer=null, applyingRemote=false;
