@@ -1,0 +1,95 @@
+<svg viewBox="0 0 640 600" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="helmet" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#a7ebf2"/><stop offset="1" stop-color="#2bb8cf"/>
+  </linearGradient>
+  <linearGradient id="scoot" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8fe1ec"/><stop offset="1" stop-color="#27aecb"/>
+  </linearGradient>
+  <linearGradient id="box" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffd24d"/><stop offset="1" stop-color="#f59b12"/>
+  </linearGradient>
+  <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffc266"/><stop offset="1" stop-color="#ff8f24"/>
+  </linearGradient>
+</defs>
+
+<g stroke="#3b2b24" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+
+  <!-- 地面陰影 -->
+  <ellipse cx="320" cy="552" rx="225" ry="22" fill="#000000" opacity="0.12" stroke="none"/>
+
+  <!-- 雲朵 -->
+  <g fill="#ffffff" stroke="#dfeef0" stroke-width="4">
+    <circle cx="560" cy="505" r="24"/><circle cx="592" cy="510" r="17"/><circle cx="575" cy="488" r="19"/>
+  </g>
+
+  <!-- 外送箱（右後）-->
+  <line x1="470" y1="430" x2="500" y2="470" stroke="#8a8a8a" stroke-width="8"/>
+  <polygon points="415,300 447,272 575,272 543,300" fill="#ffdf7a"/>
+  <polygon points="543,300 575,272 575,398 543,426" fill="#e08a08"/>
+  <rect x="413" y="300" width="132" height="126" rx="14" fill="url(#box)"/>
+  <circle cx="479" cy="360" r="30" fill="#fff7e0" stroke="#e08a08" stroke-width="5"/>
+  <path d="M464 360 l10 10 l20 -22" fill="none" stroke="#f59b12" stroke-width="7"/>
+
+  <!-- 後輪 -->
+  <circle cx="452" cy="476" r="74" fill="#33323a"/>
+  <circle cx="452" cy="476" r="34" fill="#d7d2dd"/>
+  <circle cx="452" cy="476" r="12" fill="#33323a"/>
+
+  <!-- 機車車身 -->
+  <path d="M150 470 Q120 360 200 360 L470 360 Q530 360 520 470 Z" fill="url(#scoot)"/>
+  <!-- 前護板 / 龍頭柱 -->
+  <path d="M150 470 Q110 470 120 410 L150 300 Q160 280 185 296 L210 430 Z" fill="url(#scoot)"/>
+  <!-- 座墊 -->
+  <rect x="300" y="338" width="150" height="34" rx="16" fill="#3b2b24"/>
+  <!-- 車身亮面 -->
+  <path d="M210 392 Q330 372 450 392" fill="none" stroke="#ffffff" stroke-width="9" opacity="0.5" stroke-linecap="round"/>
+  <!-- 龍頭把手 -->
+  <line x1="120" y1="300" x2="170" y2="320" stroke="#5a5a5a" stroke-width="14"/>
+  <circle cx="116" cy="298" r="13" fill="#33323a"/>
+  <!-- 大燈 -->
+  <circle cx="150" cy="360" r="22" fill="#ffe48a" stroke="#3b2b24" stroke-width="6"/>
+
+  <!-- 前輪 -->
+  <circle cx="175" cy="476" r="74" fill="#33323a"/>
+  <circle cx="175" cy="476" r="34" fill="#d7d2dd"/>
+  <circle cx="175" cy="476" r="12" fill="#33323a"/>
+
+  <!-- 騎士：腿 -->
+  <path d="M330 350 Q345 430 300 452 L268 470" fill="none" stroke="#4a4754" stroke-width="34"/>
+  <ellipse cx="260" cy="478" rx="36" ry="21" fill="#ffffff" stroke="#3b2b24" stroke-width="6"/>
+
+  <!-- 騎士：身體（橘色上衣）-->
+  <path d="M296 362 Q280 286 330 278 L386 284 Q406 352 384 368 Z" fill="url(#shirt)"/>
+  <!-- 手臂往把手 -->
+  <path d="M344 302 Q250 300 178 320" fill="none" stroke="url(#shirt)" stroke-width="32"/>
+  <circle cx="174" cy="322" r="24" fill="#ffe2c6"/>
+
+  <!-- 頭 -->
+  <!-- 臉 -->
+  <path d="M250 210 Q250 300 320 300 Q392 300 392 210 Z" fill="#ffe2c6"/>
+  <!-- 頭髮（瀏海）-->
+  <path d="M258 205 Q270 175 300 180 Q330 165 362 188 Q352 200 320 196 Q286 206 258 215 Z" fill="#4a3b32"/>
+  <!-- 安全帽 -->
+  <path d="M212 200 a108 108 0 0 1 216 0 Z" fill="url(#helmet)"/>
+  <rect x="206" y="196" width="228" height="26" rx="13" fill="#eafcff"/>
+  <!-- 帽白條 -->
+  <path d="M300 96 q20 -6 40 0 l-6 100 q-14 4 -28 0 Z" fill="#ffffff" opacity="0.9" stroke="none"/>
+  <!-- 帽光澤 -->
+  <ellipse cx="270" cy="140" rx="30" ry="48" fill="#ffffff" opacity="0.35" stroke="none"/>
+  <!-- 護耳 -->
+  <ellipse cx="392" cy="230" rx="22" ry="30" fill="#2bb8cf"/>
+
+  <!-- 五官 -->
+  <path d="M281 224 q14 -7 28 -1" fill="none" stroke="#4a3b32" stroke-width="5"/>
+  <path d="M339 223 q14 -6 28 1" fill="none" stroke="#4a3b32" stroke-width="5"/>
+  <ellipse cx="296" cy="246" rx="15" ry="19" fill="#3b2b24" stroke="none"/>
+  <ellipse cx="352" cy="246" rx="15" ry="19" fill="#3b2b24" stroke="none"/>
+  <circle cx="301" cy="240" r="5" fill="#fff" stroke="none"/>
+  <circle cx="357" cy="240" r="5" fill="#fff" stroke="none"/>
+  <circle cx="272" cy="268" r="11" fill="#ff9eb0" stroke="none" opacity="0.8"/>
+  <circle cx="376" cy="268" r="11" fill="#ff9eb0" stroke="none" opacity="0.8"/>
+  <path d="M312 272 Q324 286 336 272" fill="none" stroke="#3b2b24" stroke-width="5"/>
+</g>
+</svg>
