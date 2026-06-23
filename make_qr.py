@@ -103,6 +103,76 @@ def make_sticker():
     img.save(OUT_DIR + r"\分享圖_機車貼紙.png")
     print("saved 機車貼紙")
 
+def hgrad(w, h, left, right):
+    base = Image.new("RGB", (w, h), left)
+    d = ImageDraw.Draw(base)
+    for x in range(w):
+        t = x / max(1, w - 1)
+        c = tuple(int(left[i] + (right[i] - left[i]) * t) for i in range(3))
+        d.line([(x, 0), (x, h)], fill=c)
+    return base
+
+def dots_row(d, x0, y, fp):
+    dots = [("foodpanda", PINK), ("Uber Eats", GREEN), ("Lalamove", ORANGE)]
+    x = x0
+    for name, col in dots:
+        d.ellipse([x, y-9, x+18, y+9], fill=col); x += 26
+        d.text((x, y), name, font=fp, fill=INK, anchor="lm")
+        x += d.textlength(name, font=fp) + 34
+    return x
+
+# ---------------- 橫式 banner ----------------
+def make_banner():
+    W, H = 1200, 630
+    img = hgrad(W, H, PINKBG, MINTBG)
+    d = ImageDraw.Draw(img)
+    # 左：白卡 + QR
+    d.rounded_rectangle([54, 70, 560, 560], radius=44, fill=WHITE)
+    q = 400; qx = 54 + (506 - q)//2; qy = 70 + (490 - q)//2
+    img.paste(qr_img(q, DARK), (qx, qy))
+    # 右：文字（左對齊 x=620）
+    X = 620
+    d.text((X, 150), "外送跑單小幫手", font=f(FB, 60), fill=PINK, anchor="lm")
+    d.text((X, 214), "每天跑單的時薪、收入、里程，一鍵算好", font=f(FR, 27), fill=INK2, anchor="lm")
+    dots_row(d, X, 268, f(FB, 23))
+    d.text((X, 348), "手機掃一掃，免費開始記帳", font=f(FB, 38), fill=PINK, anchor="lm")
+    d.text((X, 404), "guanhung7484.github.io/delivery-tracker-v2", font=f(FR, 24), fill=INK2, anchor="lm")
+    d.line([X, 452, W-70, 452], fill=PINKBG, width=3)
+    d.text((X, 506), "by Daniel", font=f(FB, 28), fill=INK, anchor="lm")
+    pt = "LINE：guanhung"; pf = f(FB, 26); pw = d.textlength(pt, font=pf)
+    bx = X + d.textlength("by Daniel", font=f(FB, 28)) + 28
+    d.rounded_rectangle([bx, 484, bx+pw+40, 532], radius=24, fill=LINE_G)
+    d.text((bx+20, 508), pt, font=pf, fill=WHITE, anchor="lm")
+    img.save(OUT_DIR + r"\分享圖_橫式banner.png")
+    print("saved 橫式banner")
+
+# ---------------- 去背版（透明背景）----------------
+def make_transparent():
+    W, H = 760, 1000
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))   # 全透明背景
+    d = ImageDraw.Draw(img)
+    cx = W // 2
+    ctext(d, cx, 96, "外送跑單小幫手", f(FB, 50), PINK)
+    ctext(d, cx, 152, "每天跑單時薪、收入、里程，一鍵算好", f(FR, 24), INK2)
+    fp = f(FB, 22)
+    total = sum(d.textlength(n, font=fp) for n, _ in
+               [("foodpanda", 0), ("Uber Eats", 0), ("Lalamove", 0)]) + 3*26 + 2*34
+    dots_row(d, cx - total/2, 198, fp)
+    q = 430; qx = cx - q//2; qy = 248
+    # QR 保留白底方框（掃描必要的留白），讓它可疊在任何底色上
+    d.rounded_rectangle([qx-24, qy-24, qx+q+24, qy+q+24], radius=24, fill=(255,255,255,255), outline=PINK, width=4)
+    img.paste(qr_img(q, DARK).convert("RGBA"), (qx, qy))
+    ctext(d, cx, qy+q+70, "手機掃一掃，免費開始記帳", f(FB, 32), PINK)
+    ctext(d, cx, qy+q+116, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 22), INK2)
+    pt = "by Daniel　LINE：guanhung"; pf = f(FB, 25); pw = d.textlength(pt, font=pf)
+    px0 = cx - (pw+44)/2; py0 = H-110
+    d.rounded_rectangle([px0, py0, px0+pw+44, py0+48], radius=24, fill=LINE_G)
+    d.text((cx, py0+24), pt, font=pf, fill=WHITE, anchor="mm")
+    img.save(OUT_DIR + r"\分享圖_去背透明.png")
+    print("saved 去背透明")
+
 make_share()
 make_sticker()
+make_banner()
+make_transparent()
 print("DONE")
