@@ -192,6 +192,35 @@
     cursor:pointer;background:linear-gradient(90deg,var(--pink),#ff8fc0);color:#fff;white-space:nowrap;flex:none;}
   .sync .gbtn.out{background:var(--soft);color:var(--ink2);}
   .sync .gbtn:active{transform:scale(.96);}
+
+  /* 說明按鈕 */
+  .help-btn{display:inline-block;margin:10px auto 0;background:#fff;border:2px solid var(--pink-soft);
+    color:var(--pink-deep);font-size:15px;font-weight:800;padding:9px 18px;border-radius:15px;cursor:pointer;box-shadow:var(--shadow);}
+  .help-btn:active{transform:scale(.96);}
+
+  /* 歡迎/說明彈窗 */
+  .wel-overlay{position:fixed;inset:0;background:rgba(60,20,40,.5);z-index:100;display:none;
+    padding:16px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .wel-overlay.show{display:block;}
+  .wel{max-width:480px;margin:20px auto;background:#fff;border-radius:28px;
+    padding:26px 22px calc(24px + var(--safe-bot));box-shadow:0 22px 55px rgba(0,0,0,.32);}
+  .wel h2{font-size:27px;font-weight:900;text-align:center;margin:0 0 6px;
+    background:linear-gradient(90deg,var(--pink),var(--green-deep));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .wel .lead{text-align:center;color:var(--ink2);font-size:16px;font-weight:700;margin-bottom:16px;line-height:1.65;}
+  .wel .sec{background:var(--soft);border-radius:18px;padding:16px 17px;margin:12px 0;}
+  .wel .sec.priv{background:#eafaf3;}
+  .wel .sec h3{font-size:18.5px;font-weight:900;margin:0 0 8px;}
+  .wel .sec p{font-size:15.5px;line-height:1.7;color:var(--ink);margin:7px 0;font-weight:600;}
+  .wel .sec ol,.wel .sec ul{margin:6px 0;padding-left:22px;}
+  .wel .sec li{font-size:15.5px;line-height:1.75;color:var(--ink);margin:7px 0;font-weight:600;}
+  .wel .sec b{color:var(--pink-deep);}
+  .wel .key{background:#fff;border-radius:13px;padding:11px 13px;font-size:14.5px;font-weight:800;
+    color:var(--green-deep);margin-top:9px;line-height:1.6;}
+  .wel .key b{color:var(--green-deep);}
+  .wel .go{width:100%;border:none;border-radius:17px;padding:17px;font-size:18px;font-weight:900;cursor:pointer;
+    background:linear-gradient(90deg,var(--pink),#ff8fc0);color:#fff;margin-top:10px;box-shadow:0 8px 22px rgba(225,29,116,.3);}
+  .wel .go:active{transform:scale(.98);}
+  .wel .tip{text-align:center;font-size:13.5px;color:var(--ink3);font-weight:700;margin-top:13px;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -199,6 +228,7 @@
 <header>
   <div class="title">🛵 外送跑單小幫手</div>
   <div class="sub">每天填一填，時薪馬上知道</div>
+  <button class="help-btn" id="helpBtn">❓ 使用說明・隱私</button>
 </header>
 
 <!-- 雲端同步列（設定好 Firebase 後才會出現） -->
@@ -316,6 +346,42 @@
   </div>
 
   <footer>外送跑單小幫手 · 第二版 💕</footer>
+</div>
+
+<!-- 歡迎／說明彈窗 -->
+<div class="wel-overlay" id="welOverlay">
+  <div class="wel">
+    <h2>👋 歡迎使用</h2>
+    <div class="lead">記錄每天 foodpanda、Uber Eats、Lalamove 的跑單，<br>自動幫你算出時薪、淨收入、平均單量…</div>
+
+    <div class="sec">
+      <h3>📝 三步驟開始</h3>
+      <ol>
+        <li><b>填上線時間</b>：今日「開始 / 結束」時間。</li>
+        <li><b>填各平台</b>：單量、收入（沒跑的留空）。里程可記里程表，或留空自動估算。</li>
+        <li><b>看結果</b>：下面自動算好時薪、總收入、淨收入、平均單量、每公里收入，還有週報／月報。</li>
+      </ol>
+    </div>
+
+    <div class="sec">
+      <h3>☁️ 想多裝置同步？（可選）</h3>
+      <p>按上方的 <b>「☁️ 登入 Google」</b>。登入後，<b>手機記的、電腦開同一個帳號就看得到</b>，自動同步、即時更新。</p>
+      <p>不想登入也沒關係，照樣能用（資料只存這台裝置）。</p>
+    </div>
+
+    <div class="sec priv">
+      <h3>🔒 我的資料存在哪？安全嗎？</h3>
+      <ul>
+        <li><b>沒登入</b>：資料只存在你「這台裝置的瀏覽器」，不會上傳到任何地方。</li>
+        <li><b>有登入</b>：存到 Google 雲端資料庫（由分享這個工具給你的人代管）。只有登入<b>同一個 Google 帳號</b>的你，看得到自己的資料；其他使用者看不到你的。</li>
+      </ul>
+      <div class="key">🔑 <b>密碼絕對安全</b>：用 Google 登入，密碼只會打在 Google 官方頁面，這個工具<b>拿不到你的密碼</b>。</div>
+      <div class="key">💾 <b>記得備份</b>：最下面可「匯出備份」，換手機或清除瀏覽器資料前先備份一次。</div>
+    </div>
+
+    <button class="go" id="welGo">知道了，開始記帳 👍</button>
+    <div class="tip">之後想再看，按上方的「❓ 使用說明・隱私」</div>
+  </div>
 </div>
 
 <!-- Firebase（雲端同步用，official CDN） -->
@@ -797,11 +863,20 @@ function initCloud(){
   updateSyncUI();
 }
 
+/* ===== 歡迎／說明彈窗 ===== */
+const WELCOME_KEY='delivery_v2_seen_welcome';
+function openWelcome(){ document.getElementById('welOverlay').classList.add('show'); }
+function closeWelcome(){ document.getElementById('welOverlay').classList.remove('show'); localStorage.setItem(WELCOME_KEY,'1'); }
+document.getElementById('helpBtn').onclick=openWelcome;
+document.getElementById('welGo').onclick=closeWelcome;
+document.getElementById('welOverlay').onclick=function(e){ if(e.target===this) closeWelcome(); };
+
 buildPlatCards();
 loadDayIntoForm();
 setView('day');
 render();
 initCloud();
+if(!localStorage.getItem(WELCOME_KEY)) openWelcome();   // 第一次打開自動跳出
 </script>
 </body>
 </html>
