@@ -78,26 +78,64 @@ def make_share():
     img.save(OUT_DIR + r"\分享圖_群組轉傳.png")
     print("saved 群組轉傳")
 
-# ---------------- 機車貼紙版 ----------------
+# ---------------- Q版外送員騎機車插圖 ----------------
+def mascot(d, ax, ay):
+    """以 (ax,ay) 為左上，畫約 460x300 插圖；機車面向左、外送箱在右後方"""
+    P=(255,95,162); PD=(225,29,116); M=(34,201,138); MD=(15,157,104)
+    OR=(255,122,24); ORD=(214,80,10); SK=(255,224,196); IK=(40,38,46)
+    WH=(255,255,255); WHL=(43,43,43); GY=(207,201,214)
+    for yy in (150,185,220):                                   # 速度線
+        d.line([(ax+410, ay+yy),(ax+462, ay+yy)], fill=P, width=7)
+    bx0,by0,bx1,by1 = ax+300, ay+120, ax+402, ay+222          # 外送箱
+    d.polygon([(bx0,by0),(bx0+22,by0-22),(bx1+22,by0-22),(bx1,by0)], fill=PD)
+    d.polygon([(bx1,by0),(bx1+22,by0-22),(bx1+22,by1-22),(bx1,by1)], fill=(190,18,92))
+    d.rounded_rectangle([bx0,by0,bx1,by1], radius=12, fill=P, outline=PD, width=5)
+    d.ellipse([ax+330, ay+150, ax+345, ay+165], fill=WH)
+    d.ellipse([ax+360, ay+150, ax+375, ay+165], fill=WH)
+    d.arc([ax+330, ay+165, ax+375, ay+200], 20, 160, fill=WH, width=5)
+    for cx in (ax+110, ax+300):                                # 輪子
+        d.ellipse([cx-46, ay+204, cx+46, ay+296], fill=WHL)
+        d.ellipse([cx-20, ay+230, cx+20, ay+270], fill=GY)
+        d.ellipse([cx-7, ay+243, cx+7, ay+257], fill=IK)
+    d.rounded_rectangle([ax+200, ay+205, ax+320, ay+262], radius=26, fill=M, outline=MD, width=5)
+    d.rounded_rectangle([ax+120, ay+232, ax+235, ay+260], radius=10, fill=MD)
+    d.polygon([(ax+118, ay+250),(ax+150, ay+250),(ax+120, ay+135),(ax+92, ay+138)], fill=M, outline=MD)
+    d.rounded_rectangle([ax+205, ay+188, ax+315, ay+212], radius=12, fill=IK)
+    d.line([(ax+78, ay+132),(ax+128, ay+150)], fill=IK, width=10)
+    d.ellipse([ax+70, ay+124, ax+90, ay+144], fill=IK)
+    d.line([(ax+250, ay+205),(ax+175, ay+245)], fill=OR, width=26)   # 腿
+    d.ellipse([ax+165, ay+238, ax+190, ay+260], fill=IK)             # 鞋
+    d.polygon([(ax+205, ay+205),(ax+265, ay+205),(ax+235, ay+120),(ax+195, ay+128)], fill=OR, outline=ORD)
+    d.line([(ax+205, ay+135),(ax+95, ay+140)], fill=OR, width=20)    # 手臂
+    d.ellipse([ax+85, ay+130, ax+110, ay+155], fill=SK)             # 手
+    hx, hy = ax+175, ay+92
+    d.ellipse([hx-36, hy-36, hx+36, hy+36], fill=SK)               # 臉
+    d.chord([hx-40, hy-44, hx+40, hy+30], 180, 360, fill=P, outline=PD, width=4)  # 帽
+    d.rectangle([hx-40, hy-8, hx+40, hy+2], fill=P)
+    d.ellipse([hx-18, hy+2, hx-8, hy+14], fill=IK)                 # 眼
+    d.ellipse([hx+8, hy+2, hx+18, hy+14], fill=IK)
+    d.ellipse([hx-26, hy+12, hx-16, hy+22], fill=(255,150,170))    # 腮紅
+    d.ellipse([hx+16, hy+12, hx+26, hy+22], fill=(255,150,170))
+    d.arc([hx-12, hy+14, hx+12, hy+30], 20, 160, fill=IK, width=4) # 嘴
+
+# ---------------- 機車貼紙版（含插圖）----------------
 def make_sticker():
-    W, H = 820, 1040
+    W, H = 820, 1300
     img = Image.new("RGB", (W, H), WHITE)
     d = ImageDraw.Draw(img)
-    # 粗粉框
     d.rounded_rectangle([14, 14, W-14, H-14], radius=44, outline=PINK, width=14)
     cx = W // 2
-    # 粉色標題底
     d.rounded_rectangle([60, 70, W-60, 168], radius=26, fill=PINK)
     ctext(d, cx, 119, "外送跑單小幫手", f(FB, 50), WHITE)
-    ctext(d, cx, 232, "掃我！免費記帳", f(FB, 52), INK)
-    # QR（高對比，戶外好掃）
-    q = 500; qx = cx - q//2; qy = 290
+    mascot(d, 150, 185)
+    ctext(d, cx, 540, "掃我！免費記帳", f(FB, 52), INK)
+    q = 470; qx = cx - q//2; qy = 590
     d.rounded_rectangle([qx-18, qy-18, qx+q+18, qy+q+18], radius=22, outline=(235,235,235), width=4)
     img.paste(qr_img(q, DARK), (qx, qy))
-    ctext(d, cx, qy+q+62, "記錄每天時薪 · 收入 · 里程", f(FB, 30), INK2)
-    ctext(d, cx, qy+q+108, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 22), INK2)
+    ctext(d, cx, 1100, "記錄每天時薪 · 收入 · 里程", f(FB, 30), INK2)
+    ctext(d, cx, 1142, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 22), INK2)
     pill_t = "by Daniel　LINE：guanhung"; pf = f(FB, 25); pw = d.textlength(pill_t, font=pf)
-    px0 = cx - (pw+44)/2; py0 = H-118
+    px0 = cx - (pw+44)/2; py0 = 1178
     d.rounded_rectangle([px0, py0, px0+pw+44, py0+48], radius=24, fill=LINE_G)
     d.text((cx, py0+24), pill_t, font=pf, fill=WHITE, anchor="mm")
     img.save(OUT_DIR + r"\分享圖_機車貼紙.png")
