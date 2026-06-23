@@ -24,11 +24,6 @@
     <circle cx="560" cy="505" r="24"/><circle cx="592" cy="510" r="17"/><circle cx="575" cy="488" r="19"/>
   </g>
 
-  <!-- 後輪 -->
-  <circle cx="452" cy="476" r="74" fill="#33323a"/>
-  <circle cx="452" cy="476" r="34" fill="#d7d2dd"/>
-  <circle cx="452" cy="476" r="12" fill="#33323a"/>
-
   <!-- 機車車身 -->
   <path d="M150 470 Q120 360 200 360 L470 360 Q530 360 520 470 Z" fill="url(#scoot)"/>
   <!-- 前護板 / 龍頭柱 -->
@@ -45,6 +40,11 @@
   <rect x="446" y="250" width="124" height="112" rx="14" fill="url(#box)"/>
   <circle cx="508" cy="306" r="26" fill="#fff7e0" stroke="#e08a08" stroke-width="5"/>
   <path d="M495 306 l9 9 l18 -20" fill="none" stroke="#f59b12" stroke-width="7"/>
+
+  <!-- 後輪（與前輪一樣畫在車身前面、完整露出）-->
+  <circle cx="452" cy="476" r="74" fill="#33323a"/>
+  <circle cx="452" cy="476" r="34" fill="#d7d2dd"/>
+  <circle cx="452" cy="476" r="12" fill="#33323a"/>
 
   <!-- 龍頭把手 -->
   <line x1="120" y1="300" x2="170" y2="320" stroke="#5a5a5a" stroke-width="14"/>
