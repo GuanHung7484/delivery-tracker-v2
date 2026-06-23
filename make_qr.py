@@ -88,26 +88,35 @@ def paste_rider(img, cx, top, width):
     img.paste(r, (cx - width//2, top), r)
     return h
 
-# ---------------- 機車貼紙版（含插圖）----------------
+# ---------------- 機車貼紙版（含插圖，依圖高自動排版避免重疊）----------------
 def make_sticker():
-    W, H = 820, 1420
+    W = 820; cx = W // 2
+    rw = 430
+    r = Image.open(RIDER).convert("RGBA"); r = r.crop(r.getbbox())
+    rh = round(rw * r.height / r.width); r = r.resize((rw, rh), Image.LANCZOS)
+    rtop = 184
+    scan_y = rtop + rh + 54
+    q = 460; qy = scan_y + 56
+    sub_y = qy + q + 44
+    url_y = sub_y + 40
+    pill_y = url_y + 42
+    H = pill_y + 48 + 30
     img = Image.new("RGB", (W, H), WHITE)
     d = ImageDraw.Draw(img)
     d.rounded_rectangle([14, 14, W-14, H-14], radius=44, outline=PINK, width=14)
-    cx = W // 2
     d.rounded_rectangle([60, 70, W-60, 168], radius=26, fill=PINK)
     ctext(d, cx, 119, "外送跑單小幫手", f(FB, 50), WHITE)
-    paste_rider(img, cx, 190, 480)
-    ctext(d, cx, 692, "掃我！免費記帳", f(FB, 52), INK)
-    q = 460; qx = cx - q//2; qy = 742
+    img.paste(r, (cx - rw//2, rtop), r)
+    ctext(d, cx, scan_y, "掃我！免費記帳", f(FB, 52), INK)
+    qx = cx - q//2
     d.rounded_rectangle([qx-18, qy-18, qx+q+18, qy+q+18], radius=22, outline=(235,235,235), width=4)
     img.paste(qr_img(q, DARK), (qx, qy))
-    ctext(d, cx, 1248, "記錄每天時薪 · 收入 · 里程", f(FB, 30), INK2)
-    ctext(d, cx, 1290, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 22), INK2)
+    ctext(d, cx, sub_y, "記錄每天時薪 · 收入 · 里程", f(FB, 30), INK2)
+    ctext(d, cx, url_y, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 22), INK2)
     pill_t = "by Daniel　LINE：guanhung"; pf = f(FB, 25); pw = d.textlength(pill_t, font=pf)
-    px0 = cx - (pw+44)/2; py0 = 1324
-    d.rounded_rectangle([px0, py0, px0+pw+44, py0+48], radius=24, fill=LINE_G)
-    d.text((cx, py0+24), pill_t, font=pf, fill=WHITE, anchor="mm")
+    px0 = cx - (pw+44)/2
+    d.rounded_rectangle([px0, pill_y, px0+pw+44, pill_y+48], radius=24, fill=LINE_G)
+    d.text((cx, pill_y+24), pill_t, font=pf, fill=WHITE, anchor="mm")
     img.save(OUT_DIR + r"\分享圖_機車貼紙.png")
     print("saved 機車貼紙")
 
