@@ -40,41 +40,33 @@ def vgrad(w, h, top, bot):
 def ctext(d, cx, y, text, font, fill):
     d.text((cx, y), text, font=font, fill=fill, anchor="mm")
 
-# ---------------- 群組轉傳版 ----------------
+# ---------------- 群組轉傳版（含小騎士）----------------
 def make_share():
-    W, H = 900, 1180
+    W = 900; cx = W // 2
+    ri, rh = rider_img(320)
+    rtop = 286
+    q = 460; qy = rtop + rh + 26
+    cta_y = qy + q + 74; url_y = qy + q + 122
+    ly = qy + q + 162; pill_y = ly + 76
+    H = int(pill_y + 50 + 56)
     img = vgrad(W, H, PINKBG, MINTBG)
     d = ImageDraw.Draw(img)
-    # 內白卡
     d.rounded_rectangle([40, 40, W-40, H-40], radius=48, fill=WHITE)
-    cx = W // 2
-    ctext(d, cx, 130, "🛵 外送跑單小幫手".replace("🛵 ", ""), f(FB, 56), PINK)
-    ctext(d, cx, 196, "每天跑單的時薪、收入、里程，一鍵算好", f(FR, 27), INK2)
-    # 三平台色點
-    dots = [("foodpanda", PINK), ("Uber Eats", GREEN), ("Lalamove", ORANGE)]
-    fp = f(FB, 24); total = 0; gaps = []
-    for name, _ in dots:
-        w = d.textlength(name, font=fp); gaps.append(w); total += w
-    spacing = 38; total += spacing * (len(dots) - 1) + 26 * len(dots)
-    x = cx - total / 2
-    for (name, col), w in zip(dots, gaps):
-        d.ellipse([x, 250-9, x+18, 250+9], fill=col); x += 26
-        d.text((x, 250), name, font=fp, fill=INK, anchor="lm"); x += w + spacing
-    # QR
-    q = 470; qx = cx - q//2; qy = 310
+    ctext(d, cx, 132, "外送跑單小幫手", f(FB, 56), PINK)
+    ctext(d, cx, 198, "每天跑單的時薪、收入、里程，一鍵算好", f(FR, 27), INK2)
+    dots_center(d, cx, 252, f(FB, 24))
+    img.paste(ri, (cx - 320 // 2, rtop), ri)
+    qx = cx - q // 2
     d.rounded_rectangle([qx-22, qy-22, qx+q+22, qy+q+22], radius=28, outline=PINKBG, width=4, fill=WHITE)
     img.paste(qr_img(q, DARK), (qx, qy))
-    # CTA
-    ctext(d, cx, qy+q+78, "手機掃一掃，免費開始記帳", f(FB, 34), PINK)
-    ctext(d, cx, qy+q+128, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 23), INK2)
-    # 分隔線
-    ly = qy+q+170; d.line([110, ly, W-110, ly], fill=PINKBG, width=3)
-    # 署名 + LINE
-    ctext(d, cx, ly+48, "by Daniel　免費分享給大家用 🙂".replace(" 🙂",""), f(FB, 27), INK)
+    ctext(d, cx, cta_y, "手機掃一掃，免費開始記帳", f(FB, 34), PINK)
+    ctext(d, cx, url_y, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 23), INK2)
+    d.line([110, ly, W-110, ly], fill=PINKBG, width=3)
+    ctext(d, cx, ly+46, "by Daniel　免費分享給大家用", f(FB, 27), INK)
     pill_t = "LINE：guanhung"; pf = f(FB, 26); pw = d.textlength(pill_t, font=pf)
-    px0 = cx - (pw+44)/2; py0 = ly+78
-    d.rounded_rectangle([px0, py0, px0+pw+44, py0+50], radius=25, fill=LINE_G)
-    d.text((cx, py0+25), pill_t, font=pf, fill=WHITE, anchor="mm")
+    px0 = cx - (pw+44)/2
+    d.rounded_rectangle([px0, pill_y, px0+pw+44, pill_y+50], radius=25, fill=LINE_G)
+    d.text((cx, pill_y+25), pill_t, font=pf, fill=WHITE, anchor="mm")
     img.save(OUT_DIR + r"\分享圖_群組轉傳.png")
     print("saved 群組轉傳")
 
@@ -88,10 +80,24 @@ def paste_rider(img, cx, top, width):
     img.paste(r, (cx - width//2, top), r)
     return h
 
+def rider_img(width):
+    r = Image.open(RIDER).convert("RGBA"); r = r.crop(r.getbbox())
+    h = round(width * r.height / r.width)
+    return r.resize((width, h), Image.LANCZOS), h
+
+def dots_center(d, cx, y, fp):
+    items = [("foodpanda", PINK), ("Uber Eats", GREEN), ("Lalamove", ORANGE)]
+    ws = [d.textlength(n, font=fp) for n, _ in items]
+    total = sum(ws) + 38 * (len(items) - 1) + 26 * len(items)
+    x = cx - total / 2
+    for (name, col), w in zip(items, ws):
+        d.ellipse([x, y - 9, x + 18, y + 9], fill=col); x += 26
+        d.text((x, y), name, font=fp, fill=INK, anchor="lm"); x += w + 38
+
 # ---------------- 機車貼紙版（含插圖，依圖高自動排版避免重疊）----------------
 def make_sticker():
     W = 820; cx = W // 2
-    rw = 430
+    rw = 360
     r = Image.open(RIDER).convert("RGBA"); r = r.crop(r.getbbox())
     rh = round(rw * r.height / r.width); r = r.resize((rw, rh), Image.LANCZOS)
     rtop = 184
@@ -138,53 +144,57 @@ def dots_row(d, x0, y, fp):
         x += d.textlength(name, font=fp) + 34
     return x
 
-# ---------------- 橫式 banner ----------------
+# ---------------- 橫式 banner（小騎士 | QR | 文字 三欄）----------------
 def make_banner():
     W, H = 1200, 630
     img = hgrad(W, H, PINKBG, MINTBG)
     d = ImageDraw.Draw(img)
-    # 左：白卡 + QR
-    d.rounded_rectangle([54, 70, 560, 560], radius=44, fill=WHITE)
-    q = 400; qx = 54 + (506 - q)//2; qy = 70 + (490 - q)//2
+    # 左：小騎士
+    ri, rh = rider_img(250)
+    img.paste(ri, (26, (H - rh)//2), ri)
+    # 中：QR 白卡
+    q = 310; qx = 320; qy = (H - q)//2
+    d.rounded_rectangle([qx-26, qy-26, qx+q+26, qy+q+26], radius=26, fill=WHITE)
     img.paste(qr_img(q, DARK), (qx, qy))
-    # 右：文字（左對齊 x=620）
-    X = 620
-    d.text((X, 150), "外送跑單小幫手", font=f(FB, 60), fill=PINK, anchor="lm")
-    d.text((X, 214), "每天跑單的時薪、收入、里程，一鍵算好", font=f(FR, 27), fill=INK2, anchor="lm")
-    dots_row(d, X, 268, f(FB, 23))
-    d.text((X, 348), "手機掃一掃，免費開始記帳", font=f(FB, 38), fill=PINK, anchor="lm")
-    d.text((X, 404), "guanhung7484.github.io/delivery-tracker-v2", font=f(FR, 24), fill=INK2, anchor="lm")
-    d.line([X, 452, W-70, 452], fill=PINKBG, width=3)
-    d.text((X, 506), "by Daniel", font=f(FB, 28), fill=INK, anchor="lm")
-    pt = "LINE：guanhung"; pf = f(FB, 26); pw = d.textlength(pt, font=pf)
-    bx = X + d.textlength("by Daniel", font=f(FB, 28)) + 28
-    d.rounded_rectangle([bx, 484, bx+pw+40, 532], radius=24, fill=LINE_G)
-    d.text((bx+20, 508), pt, font=pf, fill=WHITE, anchor="lm")
+    # 右：文字
+    X = 690
+    d.text((X, 142), "外送跑單小幫手", font=f(FB, 46), fill=PINK, anchor="lm")
+    d.text((X, 200), "每天跑單時薪、收入、里程，一鍵算好", font=f(FR, 22), fill=INK2, anchor="lm")
+    dots_row(d, X, 252, f(FB, 18))
+    d.text((X, 314), "手機掃一掃，免費開始記帳", font=f(FB, 30), fill=PINK, anchor="lm")
+    d.text((X, 362), "guanhung7484.github.io/delivery-tracker-v2", font=f(FR, 17), fill=INK2, anchor="lm")
+    d.line([X, 404, W-54, 404], fill=PINKBG, width=3)
+    d.text((X, 452), "by Daniel", font=f(FB, 26), fill=INK, anchor="lm")
+    pt = "LINE：guanhung"; pf = f(FB, 24); pw = d.textlength(pt, font=pf)
+    bx = X + d.textlength("by Daniel", font=f(FB, 26)) + 24
+    d.rounded_rectangle([bx, 430, bx+pw+38, 476], radius=23, fill=LINE_G)
+    d.text((bx+19, 453), pt, font=pf, fill=WHITE, anchor="lm")
     img.save(OUT_DIR + r"\分享圖_橫式banner.png")
     print("saved 橫式banner")
 
-# ---------------- 去背版（透明背景）----------------
+# ---------------- 去背版（透明背景，含小騎士）----------------
 def make_transparent():
-    W, H = 760, 1000
+    W = 760; cx = W // 2
+    ri, rh = rider_img(260)
+    rtop = 226
+    q = 430; qy = rtop + rh + 22
+    cta_y = qy + q + 66; url_y = qy + q + 110; pill_y = url_y + 36
+    H = int(pill_y + 48 + 30)
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))   # 全透明背景
     d = ImageDraw.Draw(img)
-    cx = W // 2
-    ctext(d, cx, 96, "外送跑單小幫手", f(FB, 50), PINK)
-    ctext(d, cx, 152, "每天跑單時薪、收入、里程，一鍵算好", f(FR, 24), INK2)
-    fp = f(FB, 22)
-    total = sum(d.textlength(n, font=fp) for n, _ in
-               [("foodpanda", 0), ("Uber Eats", 0), ("Lalamove", 0)]) + 3*26 + 2*34
-    dots_row(d, cx - total/2, 198, fp)
-    q = 430; qx = cx - q//2; qy = 248
-    # QR 保留白底方框（掃描必要的留白），讓它可疊在任何底色上
+    ctext(d, cx, 92, "外送跑單小幫手", f(FB, 50), PINK)
+    ctext(d, cx, 148, "每天跑單時薪、收入、里程，一鍵算好", f(FR, 24), INK2)
+    dots_center(d, cx, 192, f(FB, 22))
+    img.alpha_composite(ri, (cx - 260 // 2, rtop))
+    qx = cx - q // 2
     d.rounded_rectangle([qx-24, qy-24, qx+q+24, qy+q+24], radius=24, fill=(255,255,255,255), outline=PINK, width=4)
     img.paste(qr_img(q, DARK).convert("RGBA"), (qx, qy))
-    ctext(d, cx, qy+q+70, "手機掃一掃，免費開始記帳", f(FB, 32), PINK)
-    ctext(d, cx, qy+q+116, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 22), INK2)
+    ctext(d, cx, cta_y, "手機掃一掃，免費開始記帳", f(FB, 32), PINK)
+    ctext(d, cx, url_y, "guanhung7484.github.io/delivery-tracker-v2", f(FR, 22), INK2)
     pt = "by Daniel　LINE：guanhung"; pf = f(FB, 25); pw = d.textlength(pt, font=pf)
-    px0 = cx - (pw+44)/2; py0 = H-110
-    d.rounded_rectangle([px0, py0, px0+pw+44, py0+48], radius=24, fill=LINE_G)
-    d.text((cx, py0+24), pt, font=pf, fill=WHITE, anchor="mm")
+    px0 = cx - (pw+44)/2
+    d.rounded_rectangle([px0, pill_y, px0+pw+44, pill_y+48], radius=24, fill=LINE_G)
+    d.text((cx, pill_y+24), pt, font=pf, fill=WHITE, anchor="mm")
     img.save(OUT_DIR + r"\分享圖_去背透明.png")
     print("saved 去背透明")
 
